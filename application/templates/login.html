@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% load widget_tweaks %}
+
+{% block content %}
+
+    <div class="container-fluid position-relative d-flex p-0">
+        <!-- Login Start -->
+        <div class="container-fluid">
+            <div class="row h-100 align-items-center justify-content-center" style="min-height: 100vh;">
+                <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-4">
+                    <div class="bg-secondary rounded p-4 p-sm-5 my-4 mx-3">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <a href="index.html" class="">
+                                <h3 class="text-primary"><i class="fa fa-user-edit me-2"></i></h3>
+                            </a>
+                            <h3>Login</h3>
+                        </div>
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="form-floating mb-3">
+                                {{ login_form.username|add_class:"form-control"|attr:"placeholder:Username" }}
+                                {% if login_form.username.errors %}
+                                    <div class="alert alert-danger" role="alert">
+                                        {{ login_form.username.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="form-floating mb-4">
+                                {{ login_form.password|add_class:"form-control"|attr:"placeholder:Password" }}
+                                {% if login_form.password.errors %}
+                                    <div class="alert alert-danger" role="alert">
+                                        {{ login_form.password.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                                    <label class="form-check-label" for="exampleCheck1">Check me out</label>
+                                </div>
+                                <a href="">Forgot Password</a>
+                            </div>
+                            <button type="submit" class="btn btn-primary py-3 w-100 mb-4">Login</button>
+                            <p class="text-center mb-0">Dont have an Account? <a href="{% url 'register' %}">Register</a></p>
+                        </form>                       
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Login End -->
+    </div>
+
+{% endblock content %}

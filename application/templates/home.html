@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- Blank Start -->
+<div class="container-fluid pt-4 px-4">
+    <div class="row vh-100 bg-secondary rounded align-items-center justify-content-center mx-0">
+        <div class="col-md-6 text-center">
+            <h3>This Application was designed to help Apple users better analyze their workout performance
+                and overall health.
+            </h3>
+            <div class="bg-secondary rounded h-100 p-4">
+                <div class="m-n2">
+                    <a href="{% url 'register' %}">
+                        <button type="button" class="btn btn-lg btn-primary m-2">Get Started</button>
+                    </a>
+                    <a href="{% url 'login' %}">
+                        <button type="button" class="btn btn-lg btn-primary m-2">Login</button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Blank End -->
+{% endblock content %}

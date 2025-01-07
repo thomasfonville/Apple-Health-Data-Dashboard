@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Workout Details</h2>
+    <p>Date: {{ workout.start_date }}</p>
+    <p>Duration: {{ workout.display_duration }}</p>
+    <p>Distance: {{ workout.distance }}</p>
+    <p>Avg Heart Rate: {{ avg_heart_rate }}</p>
+    <p>Calories Burned: {{ workout.cals_burned }}</p>
+
+{% endblock content %}

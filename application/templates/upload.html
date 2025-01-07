@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Upload XML</h2>
+<div class="col-sm-12 col-xl-6">
+    <div class="bg-secondary rounded h-100 p-4">
+        <h6 class="mb-4">File Input</h6>
+        <div class="mb-3">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <label for="formFile" class="form-label">Upload your Apple Health Data XML file.</label>
+                <input class="form-control bg-dark" type="file" id="formFile" name="exportXML">
+                <br>
+                <label for="gpxFile" class="form-label">Upload your zipped GPX files.</label>
+                <input class="form-control bg-dark" type="file" id="gpxFile" name="exportGPX">
+                <br>
+                <button type="submit">Upload</button>
+            </form>
+        <div id="progress-container" style="display:none;">
+            <div class="progress">
+                <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;">0%</div>
+            </div>
+            <p>Your Apple Health Data can contain hundreds of thousands of data points, please bear with us as your data is processed and avoid closing your browser until the upload is completed.</p>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('upload-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', this.action, true);
+
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                var percentage = (e.loaded / e.total) * 100;
+                var progressBar = document.getElementById('progress-bar');
+                progressBar.style.width = percentage + '%';
+                progressBar.textContent = Math.round(percentage) + '%';
+            }
+        };
+
+        xhr.onloadstart = function(e) {
+            document.getElementById('progress-container').style.display = 'block';
+        }
+
+        xhr.onloadend = function(e) {
+            // Hide the progress bar and show the processing indicator
+            document.getElementById('progress-container').style.display = 'none';
+            document.getElementById('processing-indicator').style.display = 'block';
+        }
+
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                // Hide the processing indicator and handle success
+                document.getElementById('processing-indicator').style.display = 'none';
+                // Redirect or update the page content on successful upload
+            } else {
+                // Handle error
+            }
+        };
+
+        xhr.send(formData);
+    });
+</script>
+{% endblock %}
+

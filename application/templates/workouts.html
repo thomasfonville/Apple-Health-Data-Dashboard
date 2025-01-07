@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Add custom CSS to style the input and select elements -->
+<style>
+    .form-group select, .form-group input {
+        height: calc(1.5em + 0.75rem + 2px); /* Match Bootstrap's default height for form inputs */
+    }
+</style>
+
+<h2>Workouts</h2>
+<div style="width: 75%; margin: 0 auto;">
+    <canvas id="workout-chart"></canvas>
+</div>
+
+{% if data_exists %}
+
+<div class="col-12">
+    <div class="bg-secondary rounded h-100 p-4">
+        <h6 class="mb-4">Running Workout Data</h6>
+
+        <form method="get">
+            <div class="row">
+                <div class="col-md-2 form-group">
+                    {{ form.year.label_tag }} {{ form.year }}
+                </div>
+                <div class="col-md-2 form-group">
+                    {{ form.month.label_tag }} {{ form.month }}
+                </div>
+                <div class="col-md-2 form-group">
+                    {{ form.start_date.label_tag }} {{ form.start_date }}
+                </div>
+                <div class="col-md-2 form-group">
+                    {{ form.end_date.label_tag }} {{ form.end_date }}
+                </div>
+                <div class="col-md-2 form-group">
+                    {{ form.distance_range.label_tag }} {{ form.distance_range }}
+                </div>
+                <div class="col-md-2 form-group d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <a href="{% url 'workouts' %}" class="btn btn-secondary ms-2">Clear Filters</a>
+                </div>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table id="workout-table" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Duration</th>
+                        <th scope="col">Distance (mi)</th>
+                        <th scope="col">Avg Heart Rate</th>
+                        <th scope="col">Calories</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for workout in workout_data %}
+                    <tr class="clickable-row" data-href="{% url 'workout_detail' workout.id %}">
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ workout.start_date|date:"F j, Y" }}</td>
+                        <td>{{ workout.display_duration }}</td>
+                        <td>{{ workout.distance|default_if_none:"0"|floatformat:2 }}</td>
+                        <td>{{ workout.avg_hr|default_if_none:"N/A" }}</td>
+                        <td>{{ workout.cals_burned|default_if_none:"N/A" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% else %}
+    <p>You haven't uploaded any data yet.</p>
+{% endif %}
+
+{% endblock content %}
+
+{% block javascript %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Get all elements with the class "clickable-row"
+        var rows = document.getElementsByClassName('clickable-row');
+    
+        // Loop through each element
+        for (var i = 0; i < rows.length; i++) {
+            // Add a click event listener to the element
+            rows[i].addEventListener('click', function() {
+                // On click, get the data-href attribute and navigate to that URL
+                window.location = this.dataset.href;
+            });
+        }
+    });
+    </script>
+    
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script>
+    function updateCharts() {
+    // Retrieve the workout data from the table
+    var workoutTable = document.getElementById('workout-table');
+    var workoutRows = workoutTable.getElementsByTagName('tr');
+    var workoutData = [];
+
+    for (var i = 1; i < workoutRows.length; i++) {
+        var row = workoutRows[i];
+        var duration = row.cells[2].textContent;
+        var duration_object = moment.duration(duration);
+        var duration_seconds = duration_object.asSeconds();
+        var duration_minutes = duration_seconds / 60;
+        var data = {
+            start_date: row.cells[1].textContent.trim().split(',')[0], // format date string
+            duration: duration_minutes,
+            distance: parseFloat(row.cells[3].textContent),
+            cals_burned: parseFloat(row.cells[5].textContent),
+        };
+        workoutData.push(data);
+    }
+
+        // Split the workout data into separate arrays for duration, distance, and calories burned
+        var durationData = workoutData.map(function (d) {
+            return d.duration;
+        });
+        var distanceData = workoutData.map(function (d) {
+            return d.distance;
+        });
+        var calsBurnedData = workoutData.map(function (d) {
+            return d.cals_burned;
+        });
+        var labels = workoutData.map(function (d) {
+            return d.start_date;
+        });
+
+        // Update the chart data and labels
+        chart.data.datasets[0].data = durationData;
+        chart.data.datasets[1].data = distanceData;
+        chart.data.datasets[2].data = calsBurnedData;
+        chart.data.labels = labels;
+        chart.update();
+    }
+
+    var chart = new Chart(document.getElementById('workout-chart').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [
+            {
+                label: 'Duration',
+                data: [],
+                yAxisID: 'left-y-axis',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+            },
+            {
+                label: 'Distance',
+                data: [],
+                yAxisID: 'middle-y-axis',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+            },
+            {
+                label: 'Calories Burned',
+                data: [],
+                yAxisID: 'right-y-axis',
+                backgroundColor: 'rgba(255, 205, 86, 0.2)',
+                borderColor: 'rgba(255, 205, 86, 1)',
+                borderWidth: 1,
+            },
+        ],
+    },
+    options: {
+    scales: {
+        yAxes: [
+    {
+        id: 'left-y-axis',
+        position: 'left',
+        ticks: {
+            beginAtZero: true,
+            callback: function (value, index, values) {
+                return (value / 60).toFixed(2) + ' min';
+            },
+        },
+    },
+    {
+        id: 'middle-y-axis',
+        position: 'right',
+        ticks: {
+            beginAtZero: true,
+        },
+        gridLines: {
+            drawOnChartArea: false,
+        },
+    },
+    {
+        id: 'right-y-axis',
+        position: 'right',
+        ticks: {
+            beginAtZero: true,
+        },
+        gridLines: {
+            drawOnChartArea: false,
+        },
+    },
+],
+
+    },
+    tooltips: {
+        callbacks: {
+            label: function (tooltipItem, data) {
+                var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+                if (tooltipItem.datasetIndex === 0) { // Duration dataset
+                    label += ': ' + (tooltipItem.yLabel / 60).toFixed(2) + ' min';
+                } else {
+                    label += ': ' + tooltipItem.yLabel;
+                }
+
+                return label;
+            },
+        },
+    },
+},
+});
+
+// Update the chart when the page loads
+updateCharts();
+
+</script>
+{% endblock javascript %}

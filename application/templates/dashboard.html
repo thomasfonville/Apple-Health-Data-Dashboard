@@ -1,0 +1,342 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid pt-4 px-4">
+    {% if not has_data %}
+    <div class="alert alert-warning" role="alert">
+        You haven't uploaded any data yet.
+        <a href="{% url 'upload' %}" class="btn btn-primary ml-3">Upload Files</a>
+    </div>
+    {% endif %}
+    <div class="bg-secondary rounded h-100 p-4 col-md-12 text-center">
+        <div class="btn-group" role="group">
+            <input type="radio" class="btn-check time-period" name="time_frame" id="btnradio1" value="all" autocomplete="off" checked>
+            <label class="btn btn-outline-primary" for="btnradio1">All Time</label>
+
+            <input type="radio" class="btn-check time-period" name="time_frame" id="btnradio2" value="yearly" autocomplete="off">
+            <label class="btn btn-outline-primary" for="btnradio2">Yearly</label>
+
+            <input type="radio" class="btn-check time-period" name="time_frame" id="btnradio3" value="monthly" autocomplete="off">
+            <label class="btn btn-outline-primary" for="btnradio3">Monthly</label>
+
+            <input type="radio" class="btn-check time-period" name="time_frame" id="btnradio4" value="weekly" autocomplete="off">
+            <label class="btn btn-outline-primary" for="btnradio4">Weekly</label>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                <i class="fa-solid fa-person-running fa-2xl" style="color: #4BC0C0;"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Total Distance Ran</p>
+                    <h6 class="mb-0" id="total-distance">{{ total_distance }} mi</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                <i class="fa-solid fa-stopwatch fa-2xl" style="color: #4BC0C0;"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Average Pace</p>
+                    <h6 class="mb-0" id="average-pace">{{ average_pace }} per mile</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                <i class="fa-solid fa-heart-pulse fa-2xl" style="color: #4BC0C0;"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Average Heart Rate</p>
+                    <h6 class="mb-0" id="average-hr">{{ average_hr }} bpm</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                <i class="fa-solid fa-shoe-prints fa-2xl" style="color: #4BC0C0;"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Average Cadence</p>
+                    <h6 class="mb-0" id="average-cadence">{{ average_cadence }} spm</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Start -->
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-sm-12 col-xl-6">
+            <div class="bg-secondary text-center rounded p-4">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="mb-0">Distance Per Month</h6>
+                </div>
+                <canvas id="distanceChart"></canvas>
+            </div>
+        </div>
+        <div class="col-sm-12 col-xl-6">
+            <div class="bg-secondary text-center rounded p-4">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="mb-0">Heart Rate</h6>
+                </div>
+                <canvas id="hrChart"></canvas>
+            </div>
+        </div>
+        <div class="col-sm-12 col-xl-6">
+            <div class="bg-secondary text-center rounded p-4">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="mb-0">Pace Over Time</h6>
+                </div>
+                <canvas id="paceChart"></canvas>
+            </div>
+        </div>
+        <div class="col-sm-12 col-xl-6">
+            <div class="bg-secondary text-center rounded p-4">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="mb-0">Heart Rate Zones</h6>
+                </div>
+                <canvas id="hrZonesChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                <i class="fa-solid fa-person-running fa-2xl" style="color: #4BC0C0;"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Best Time to Run</p>
+                    <h6 class="mb-0" id="fastest-hour">{{ fastest_hour_display }}</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                <i class="fa-solid fa-stopwatch fa-2xl" style="color: #4BC0C0;"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Worst Time to Run</p>
+                    <h6 class="mb-0" id="worst-hour">{{ worst_hour_display }}</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                <i class="fa-solid fa-heart-pulse fa-2xl" style="color: #4BC0C0;"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Zone 2 HR</p>
+                    <h6 class="mb-0" id="heart-rate-zone-2">{{ heart_rate_range_zone_2 }}</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                <i class="fa-solid fa-shoe-prints fa-2xl" style="color: #4BC0C0;"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Zone 2 Time</p>
+                    <h6 class="mb-0" id="zone-2-time">{{ percentage_in_zone_2 }}%</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Heat Map -->
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-secondary rounded p-4 col-md-12">
+        <h6 class="mb-4">Where You've Been</h6>
+        <div id="heatmap" style="height: 600px;"></div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block javascript %}
+<script>
+    // Parse data from Django view
+    const labelsDistance = {{ distance_labels|safe }};
+    const distances = {{ distances|safe }};
+    const labelsHr = {{ hr_labels|safe }};
+    const avgHrs = {{ heart_rates|safe }};
+    const dates = {{ pace_labels|safe }};
+    const paces = {{ paces|safe }};
+    const runDates = JSON.parse('{{ run_dates_json|safe }}');
+    const zoneTimes = JSON.parse('{{ zone_times_json|safe }}');
+
+    // Bar chart for Distance Ran per Month
+    const dataDistance = {
+        labels: labelsDistance,
+        datasets: [{
+            label: 'Distance Ran per Month',
+            data: distances,
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    const configDistance = {
+        type: 'bar',
+        data: dataDistance,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    };
+
+    var distanceChart = new Chart(
+        document.getElementById('distanceChart'),
+        configDistance
+    );
+
+    // Line chart for Average Heart Rate Over Time
+    const dataHr = {
+        labels: labelsHr,
+        datasets: [{
+            label: 'Average Heart Rate Over Time',
+            data: avgHrs,
+            fill: false,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    };
+
+    const configHr = {
+        type: 'line',
+        data: dataHr,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    };
+
+    var hrChart = new Chart(
+        document.getElementById('hrChart'),
+        configHr
+    );
+
+    // Line Chart for Pace over Time
+    const dataPace = {
+        labels: dates,
+        datasets: [{
+            label: 'Pace Over Time (min/km)',
+            data: paces, // Use pace data directly as it's already in decimal minutes
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1,
+            fill: false
+        }]
+    };
+
+    const configPace = {
+        type: 'line',
+        data: dataPace,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Pace (minutes per km)'
+                    },
+                    ticks: {
+                        // Convert decimal minutes back to a 'minutes:seconds' format for display
+                        callback: function(value) {
+                            const minutes = Math.floor(value);
+                            const seconds = Math.round((value - minutes) * 60);
+                            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    var paceChart = new Chart(
+        document.getElementById('paceChart'),
+        configPace
+    );
+
+    // Bar chart for Heart Rate Zones time %
+    const colors = {  // Example colors for each zone
+        'Zone 1': 'rgba(102, 214, 175)',
+        'Zone 2': 'rgba(75, 192, 192)',
+        'Zone 3': 'rgba(50, 144, 213)',
+        'Zone 4': 'rgba(102, 119, 207)',
+        'Zone 5': 'rgba(153, 102, 255)',
+    };
+
+    const datasets = Object.keys(zoneTimes).map(zone => ({
+        label: zone,
+        data: zoneTimes[zone],
+        backgroundColor: colors[zone],
+    }));
+
+    const hrZonesChart = new Chart(document.getElementById('hrZonesChart'), {
+        type: 'bar',
+        data: {
+            labels: runDates,
+            datasets: datasets,
+        },
+        options: {
+            scales: {
+                x: { stacked: true },
+                y: {
+                    stacked: true,
+                    title: { display: true, text: 'Minutes in Zone' }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Heart Rate Zones Over Runs'
+                }
+            }
+        }
+    });
+</script>
+
+<script>
+var map = L.map('heatmap').setView([33.626, -96.620], 12.74);
+
+// Add a tile layer to the map
+L.tileLayer('https://api.mapbox.com/styles/v1/tfdesignco/clka40a2x008v01pv8le25ay4/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1IjoidGZkZXNpZ25jbyIsImEiOiJjbGthM252bmwwMzNtM3JwbGlxd2ptdm43In0.Et6rN7_wPXLzjarp95w7bA', {
+    maxZoom: 18,
+    id: 'mapbox/dark-v9',
+    tileSize: 512,
+    zoomOffset: -1,
+}).addTo(map);
+
+console.log('JavaScript is working!')
+{% if not workout_routes %}console.log('There are no routes');{% endif %}
+
+var routesPerWorkout = JSON.parse('{{ workout_routes|escapejs|safe }}');
+
+for(var i = 0; i < routesPerWorkout.length; i++){
+    var run = routesPerWorkout[i];
+
+    var coordinates = [];
+    for(var j = 0; j < run.length; j++){
+        coordinates.push([run[j].latitude, run[j].longitude]);
+    }
+
+    // Create a polyline for the route with frequency as opacity
+    var polyline = L.polyline(coordinates, {
+        color: '#4BC0C0',
+        opacity: run[0].frequency
+    }).addTo(map);
+}
+</script>
+
+{% endblock %}
