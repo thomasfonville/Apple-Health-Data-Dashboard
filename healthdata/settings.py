@@ -30,6 +30,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['apple-health-data-dashboard-production.up.railway.app', 'localhost', '127.0.0.1']
 
+CSRF_TRUSTED_ORIGINS = ['https://apple-health-data-dashboard-production.up.railway.app']
 
 # Application definition
 
