@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-r!0juatguuh7(a_)s=cuc&&mqdvl9tjjo8&#x08sr74f1gk^=v
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS=.railway.app
+ALLOWED_HOSTS = ['apple-health-data-dashboard-production.up.railway.app', 'localhost', '127.0.0.1']
 
 
 # Application definition
